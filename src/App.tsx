@@ -14,9 +14,87 @@ import {
   Star, 
   Heart, 
   Clock,
-  ArrowRight
+  ArrowRight,
+  ShoppingBag,
+  X,
+  Plus,
+  Minus,
+  Trash2,
+  CheckCircle2
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+  category: string;
+  perUnit?: string;
+  isCustom?: boolean;
+}
+
+interface CartItem extends Product {
+  quantity: number;
+}
+
+const PRODUCTS: Product[] = [
+  {
+    id: "cakes",
+    name: "Custom Cakes",
+    price: 0,
+    isCustom: true,
+    description: "Sophisticated designs tailored to your grandest narratives. From minimal elegance to floral overloads.",
+    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=800&auto=format&fit=crop",
+    category: "Bespoke"
+  },
+  {
+    id: "cupcakes",
+    name: "Gourmet Cupcakes",
+    price: 35,
+    perUnit: "dozen",
+    description: "Gourmet treats defined by silk-like frosting and intentional flavor profiles.",
+    image: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?q=80&w=800&auto=format&fit=crop",
+    category: "Treats"
+  },
+  {
+    id: "cookies",
+    name: "Artisanal Cookies",
+    price: 24,
+    perUnit: "dozen",
+    description: "Refined recipes that bridge the gap between comfort and luxury. Perfect for gifting.",
+    image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?q=80&w=800&auto=format&fit=crop",
+    category: "Treats"
+  },
+  {
+    id: "brownies",
+    name: "Luxury Brownies",
+    price: 28,
+    perUnit: "half-dozen",
+    description: "Deep, rich espresso-infused chocolate brownies with a crackle top and fudgy heart.",
+    image: "https://images.unsplash.com/photo-1464305795204-6f5bdf7f8740?q=80&w=800&auto=format&fit=crop",
+    category: "Treats"
+  },
+  {
+    id: "macarons",
+    name: "French Macarons",
+    price: 32,
+    perUnit: "dozen",
+    description: "Delicate almond meringue shells with seasonal ganache fillings. A Parisian classic.",
+    image: "https://images.unsplash.com/photo-1569864358642-9d1619702683?q=80&w=800&auto=format&fit=crop",
+    category: "Specialties"
+  },
+  {
+    id: "loaf-cakes",
+    name: "Signature Loaf Cakes",
+    price: 18,
+    perUnit: "loaf",
+    description: "Dense, moist, and deeply flavored. Perfect for high-tea or elegant morning gatherings.",
+    image: "https://images.unsplash.com/photo-1558485940-02206775f0a0?q=80&w=800&auto=format&fit=crop",
+    category: "Specialties"
+  }
+];
 
 const FadeInWhenVisible = ({ children, delay = 0, duration = 0.8, direction = "up" }: any) => {
   const variants = {
@@ -112,7 +190,47 @@ const ImageOrPlaceholder = ({ src, alt, className, delay = 0 }: { src?: string, 
 );
 
 export default function App() {
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [addedMessage, setAddedMessage] = useState<string | null>(null);
+
   const targetRef = useRef(null);
+
+  const addToCart = (product: Product) => {
+    if (product.isCustom) {
+      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    setCart(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+
+    setAddedMessage(product.name);
+    setTimeout(() => setAddedMessage(null), 3000);
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+  };
+
+  const updateQuantity = (id: string, delta: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQty = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    }));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start start", "end end"]
@@ -126,7 +244,115 @@ export default function App() {
       <CustomCursor />
       <div className="noise" />
       
-      {/* Navigation */}
+      {/* Cart Drawer */}
+      <AnimatePresence>
+        {isCartOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsCartOpen(false)}
+              className="fixed inset-0 bg-espresso/40 backdrop-blur-sm z-[100]"
+            />
+            <motion.div 
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-screen w-full max-w-md bg-ivory z-[101] shadow-2xl flex flex-col"
+            >
+              <div className="p-8 flex justify-between items-center border-b border-gold/10">
+                <h2 className="font-serif text-2xl text-espresso tracking-wide">Your Selection</h2>
+                <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-gold/10 rounded-full transition-colors">
+                  <X className="w-5 h-5 text-espresso" />
+                </button>
+              </div>
+
+              <div className="flex-grow overflow-y-auto p-8 space-y-8">
+                {cart.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40">
+                    <ShoppingBag className="w-12 h-12 stroke-[1.5]" />
+                    <p className="font-serif text-xl">Your basket is empty</p>
+                    <button 
+                      onClick={() => setIsCartOpen(false)}
+                      className="text-xs uppercase tracking-widest font-bold text-gold"
+                    >
+                      Return to Gallery
+                    </button>
+                  </div>
+                ) : (
+                  cart.map((item) => (
+                    <motion.div 
+                      layout
+                      key={item.id} 
+                      className="flex gap-6 group"
+                    >
+                      <div className="w-24 h-24 flex-shrink-0 bg-blush rounded-sm overflow-hidden">
+                        <img src={item.image} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-grow">
+                        <div className="flex justify-between items-start mb-1">
+                          <h3 className="font-serif text-lg text-espresso">{item.name}</h3>
+                          <button onClick={() => removeFromCart(item.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                            <Trash2 className="w-4 h-4 text-burgundy" />
+                          </button>
+                        </div>
+                        <p className="text-[10px] uppercase tracking-widest text-espresso/40 mb-4">${item.price} per {item.perUnit}</p>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center border border-gold/20 rounded-full px-3 py-1 scale-90 -ml-2">
+                            <button onClick={() => updateQuantity(item.id, -1)} className="hover:text-gold transition-colors"><Minus className="w-3 h-3" /></button>
+                            <span className="w-8 text-center text-xs font-medium tabular-nums">{item.quantity}</span>
+                            <button onClick={() => updateQuantity(item.id, 1)} className="hover:text-gold transition-colors"><Plus className="w-3 h-3" /></button>
+                          </div>
+                          <span className="text-xs font-bold text-espresso ml-auto tracking-wide">${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+
+              {cart.length > 0 && (
+                <div className="p-8 border-t border-gold/10 bg-white shadow-[0_-10px_30px_rgba(0,0,0,0.02)]">
+                  <div className="flex justify-between items-center mb-6">
+                    <span className="text-xs uppercase tracking-widest font-bold text-espresso/40">Subtotal</span>
+                    <span className="font-serif text-2xl text-espresso tracking-tight">${cartTotal.toFixed(2)}</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full bg-espresso text-ivory text-[10px] uppercase tracking-[0.3em] font-bold py-6 group relative overflow-hidden flex items-center justify-center gap-3"
+                  >
+                    Proceed to Inquiry
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-all" />
+                  </button>
+                  <p className="text-[9px] text-center mt-4 text-espresso/30 italic">Delivery within Maryland available. All items baked with intention.</p>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Added to Cart Notification */}
+      <AnimatePresence>
+        {addedMessage && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[150] bg-espresso text-ivory px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 border border-gold/20"
+          >
+            <div className="w-6 h-6 rounded-full bg-gold flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4 text-ivory" />
+            </div>
+            <span className="text-xs font-bold tracking-widest uppercase">{addedMessage} Added</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-6 md:px-16" aria-label="Main Navigation">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
@@ -144,6 +370,17 @@ export default function App() {
         >
           <a href="#about" className="hidden md:block text-espresso/60 hover:text-gold transition-colors text-xs uppercase tracking-widest font-medium">Legacy</a>
           <a href="#specialties" className="hidden md:block text-espresso/60 hover:text-gold transition-colors text-xs uppercase tracking-widest font-medium">Bespoke</a>
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="relative p-2 text-espresso hover:text-gold transition-colors"
+          >
+            <ShoppingBag className="w-5 h-5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold text-ivory text-[8px] flex items-center justify-center rounded-full font-bold">
+                {cartCount}
+              </span>
+            )}
+          </button>
           <a href="#contact" className="px-6 py-2.5 bg-espresso text-ivory text-xs uppercase tracking-widest font-medium hover:bg-burgundy transition-all duration-500 rounded-full">
             Inquire
           </a>
@@ -290,84 +527,65 @@ export default function App() {
       </section>
 
       {/* Specialties Section */}
-      <section id="specialties" className="py-32 bg-ivory">
-        <div className="container mx-auto px-6">
+      <section id="specialties" className="py-32 bg-white relative">
+        <div className="absolute inset-0 mesh-gradient opacity-10 pointer-events-none" />
+        <div className="container mx-auto px-6 relative z-10">
           <FadeInWhenVisible>
-            <div className="text-center mb-24">
-              <span className="text-gold uppercase tracking-[0.4em] text-[10px] block mb-4">The Selection</span>
-              <h2 className="font-serif text-4xl md:text-6xl text-espresso">Our Bespoke Specialties</h2>
+            <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
+              <div className="max-w-2xl">
+                <span className="text-gold uppercase tracking-[0.4em] text-[10px] block mb-4">The Collection</span>
+                <h2 className="font-serif text-5xl md:text-7xl text-espresso">Bespoke Creations</h2>
+              </div>
+              <p className="text-espresso/50 text-sm max-w-xs leading-relaxed italic">
+                Explore our artisanal selection. Each item is handcrafted to order with the finest ingredients.
+              </p>
             </div>
           </FadeInWhenVisible>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-20 max-w-7xl mx-auto">
-            {/* Specialty 1 */}
-            <div className="group relative">
-              <FadeInWhenVisible delay={0.1}>
-                <div className="aspect-[4/5] mb-8 overflow-hidden relative">
-                  <ImageOrPlaceholder 
-                    src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=800&auto=format&fit=crop"
-                    alt="Elegant custom wedding cake by TheFinestBakehouse with intricate floral details and luxury finish"
-                    className="w-full h-full" 
-                  />
-                  <div className="absolute inset-0 bg-espresso/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex items-center justify-center">
-                    <button className="bg-ivory text-espresso text-[10px] uppercase tracking-widest px-8 py-3 font-bold hover:bg-gold hover:text-ivory transition-colors">View Details</button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16 max-w-7xl mx-auto">
+            {PRODUCTS.map((product, idx) => (
+              <div key={product.id} className="group relative">
+                <FadeInWhenVisible delay={idx * 0.1}>
+                  <div className="aspect-[4/5] mb-8 overflow-hidden relative rounded-sm">
+                    <ImageOrPlaceholder 
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full" 
+                    />
+                    <div className="absolute inset-0 bg-espresso/40 opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex flex-col items-center justify-center gap-4">
+                      <button 
+                        onClick={() => addToCart(product)}
+                        className="bg-ivory text-espresso text-[10px] uppercase tracking-[0.2em] px-8 py-3.5 font-bold hover:bg-gold hover:text-ivory transition-all duration-300 transform translate-y-4 group-hover:translate-y-0"
+                      >
+                        {product.isCustom ? "Inquire Now" : "Add to Basket"}
+                      </button>
+                    </div>
+                    {!product.isCustom && (
+                      <div className="absolute top-4 right-4 bg-ivory/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
+                        <span className="text-[10px] font-bold text-espresso tracking-tighter">${product.price}</span>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="flex justify-between items-end mb-4">
-                  <h3 className="font-serif text-3xl text-espresso">Custom Cakes</h3>
-                  <div className="h-[1px] flex-grow mx-4 bg-gold/20 mb-2 invisible group-hover:visible transition-all" />
-                  <Cake className="w-5 h-5 text-gold/40 group-hover:text-gold transition-colors" />
-                </div>
-                <p className="text-espresso/60 text-sm leading-relaxed mb-6">
-                  Sophisticated designs tailored to your grandest narratives. From minimal elegance to floral overloads.
-                </p>
-              </FadeInWhenVisible>
-            </div>
-
-            {/* Specialty 2 */}
-            <div className="group relative md:-translate-y-12">
-              <FadeInWhenVisible delay={0.2}>
-                <div className="aspect-[4/5] mb-8 overflow-hidden relative">
-                  <ImageOrPlaceholder 
-                    src="https://images.unsplash.com/photo-1550617931-e17a7b70dce2?q=80&w=800&auto=format&fit=crop"
-                    alt="Gourmet cupcakes with silk-like frosting and artisanal toppings from TheFinestBakehouse Maryland"
-                    className="w-full h-full" 
-                  />
-                  <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-espresso/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="text-ivory/80 text-[10px] uppercase tracking-[0.3em]">Pricing Tier</span>
-                    <p className="text-ivory font-serif text-lg">$35 / Dozen</p>
-                    <p className="text-ivory/60 text-[10px] mt-1 italic">Per color & flavor selection</p>
+                  
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <span className="text-gold uppercase tracking-[0.2em] text-[9px] font-bold block mb-1">{product.category}</span>
+                      <h3 className="font-serif text-3xl text-espresso group-hover:text-gold transition-colors duration-500">{product.name}</h3>
+                    </div>
+                    {product.isCustom ? (
+                      <div className="p-2 border border-gold/10 rounded-full">
+                        <Star className="w-4 h-4 text-gold/30" />
+                      </div>
+                    ) : (
+                      <ShoppingBag className="w-5 h-5 text-gold/20 group-hover:text-gold transition-colors" />
+                    )}
                   </div>
-                </div>
-                <div className="flex justify-between items-end mb-4">
-                  <h3 className="font-serif text-3xl text-espresso">Cupcakes</h3>
-                  <Star className="w-5 h-5 text-gold/40 group-hover:text-gold transition-colors" />
-                </div>
-                <p className="text-espresso/60 text-sm leading-relaxed mb-6">
-                  Gourmet treats defined by silk-like frosting and intentional flavor profiles. $35 per dozen.
-                </p>
-              </FadeInWhenVisible>
-            </div>
-
-            {/* Specialty 3 */}
-            <div className="group relative">
-              <FadeInWhenVisible delay={0.3}>
-                <div className="aspect-[4/5] mb-8 overflow-hidden relative">
-                  <ImageOrPlaceholder 
-                    src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?q=80&w=800&auto=format&fit=crop"
-                    alt="Handcrafted artisanal cookies for luxury gifting and refined events"
-                    className="w-full h-full" 
-                  />
-                </div>
-                <div className="flex justify-between items-end mb-4">
-                  <h3 className="font-serif text-3xl text-espresso">Cookies</h3>
-                  <Cookie className="w-5 h-5 text-gold/40 group-hover:text-gold transition-colors" />
-                </div>
-                <p className="text-espresso/60 text-sm leading-relaxed mb-6">
-                  Refined recipes that bridge the gap between comfort and luxury. Perfect for gifting or intimate gatherings.
-                </p>
-              </FadeInWhenVisible>
-            </div>
+                  <p className="text-espresso/60 text-sm leading-relaxed mb-6 font-medium">
+                    {product.description}
+                  </p>
+                </FadeInWhenVisible>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -477,12 +695,29 @@ export default function App() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] uppercase tracking-widest font-bold text-espresso/60">Occasion</label>
-                        <input type="text" className="w-full bg-ivory border-none p-4 text-sm focus:ring-1 focus:ring-gold outline-none transition-all" />
+                        <input type="text" className="w-full bg-ivory border-none p-4 text-sm focus:ring-1 focus:ring-gold outline-none transition-all" placeholder="e.g. Wedding, Birthday" />
                       </div>
                     </div>
+                    {cart.length > 0 && (
+                      <div className="bg-blush/30 p-6 rounded-lg pointer-events-none">
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-gold block mb-4">Your Basket Selection</span>
+                        <div className="space-y-2">
+                          {cart.map(item => (
+                            <div key={item.id} className="flex justify-between items-center text-xs">
+                              <span className="text-espresso/80 font-medium">{item.name} x {item.quantity}</span>
+                              <span className="text-gold font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                          <div className="pt-4 border-t border-gold/10 flex justify-between items-center font-bold">
+                            <span className="text-espresso uppercase tracking-widest text-[10px]">Total Inquiry</span>
+                            <span className="text-espresso">${cartTotal.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase tracking-widest font-bold text-espresso/60">Message / Vision</label>
-                      <textarea rows={4} className="w-full bg-ivory border-none p-4 text-sm focus:ring-1 focus:ring-gold outline-none transition-all resize-none"></textarea>
+                      <textarea rows={4} className="w-full bg-ivory border-none p-4 text-sm focus:ring-1 focus:ring-gold outline-none transition-all resize-none" placeholder={cart.length > 0 ? "Tell us more about your event details and preferences..." : "Describe your vision, flavor preferences, and event date..."}></textarea>
                     </div>
                     <button className="w-full bg-espresso text-ivory text-[10px] uppercase tracking-[0.3em] font-bold py-6 group relative overflow-hidden transition-all duration-500 hover:shadow-2xl">
                       <span className="relative z-10 flex items-center justify-center gap-3">
