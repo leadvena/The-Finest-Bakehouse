@@ -127,7 +127,7 @@ export default function App() {
       <div className="noise" />
       
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-6 md:px-16">
+      <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-6 md:px-16" aria-label="Main Navigation">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -150,20 +150,21 @@ export default function App() {
         </motion.div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-ivory">
-        <motion.div 
-          style={{ scale: heroScale, opacity: heroOpacity }}
-          className="absolute inset-0 z-0"
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=1920&auto=format&fit=crop"
-            alt="Luxury Patisserie"
-            className="w-full h-full object-cover opacity-15 grayscale-[50%]"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-ivory/80 via-transparent to-ivory" />
-        </motion.div>
+      <main>
+        {/* Hero Section */}
+        <section className="relative h-screen flex items-center justify-center overflow-hidden bg-ivory">
+          <motion.div 
+            style={{ scale: heroScale, opacity: heroOpacity }}
+            className="absolute inset-0 z-0"
+          >
+            <img 
+              src="https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=1920&auto=format&fit=crop"
+              alt="Luxury Patisserie display with elegant tiered cakes and warm lighting"
+              className="w-full h-full object-cover opacity-15 grayscale-[50%]"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-ivory/80 via-transparent to-ivory" />
+          </motion.div>
 
         <motion.div 
           style={{ scale: heroScale, opacity: heroOpacity }}
@@ -305,7 +306,7 @@ export default function App() {
                 <div className="aspect-[4/5] mb-8 overflow-hidden relative">
                   <ImageOrPlaceholder 
                     src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=800&auto=format&fit=crop"
-                    alt="Custom Wedding Cake"
+                    alt="Elegant custom wedding cake by TheFinestBakehouse with intricate floral details and luxury finish"
                     className="w-full h-full" 
                   />
                   <div className="absolute inset-0 bg-espresso/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex items-center justify-center">
@@ -329,7 +330,7 @@ export default function App() {
                 <div className="aspect-[4/5] mb-8 overflow-hidden relative">
                   <ImageOrPlaceholder 
                     src="https://images.unsplash.com/photo-1550617931-e17a7b70dce2?q=80&w=800&auto=format&fit=crop"
-                    alt="Luxury Cupcakes"
+                    alt="Gourmet cupcakes with silk-like frosting and artisanal toppings from TheFinestBakehouse Maryland"
                     className="w-full h-full" 
                   />
                   <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-espresso/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500">
@@ -354,7 +355,7 @@ export default function App() {
                 <div className="aspect-[4/5] mb-8 overflow-hidden relative">
                   <ImageOrPlaceholder 
                     src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?q=80&w=800&auto=format&fit=crop"
-                    alt="Artisanal Cookies"
+                    alt="Handcrafted artisanal cookies for luxury gifting and refined events"
                     className="w-full h-full" 
                   />
                 </div>
@@ -409,7 +410,7 @@ export default function App() {
                   <div className="pt-12">
                     <ImageOrPlaceholder 
                       src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=800&auto=format&fit=crop"
-                      alt="Wedding Celebration"
+                      alt="Luxury wedding cake centerpiece at a high-end celebration"
                       className="aspect-[3/4] rounded-full gold-glow mb-4" 
                     />
                     <p className="text-[10px] uppercase tracking-widest text-gold text-right pr-4">Weddings</p>
@@ -417,7 +418,7 @@ export default function App() {
                   <div>
                     <ImageOrPlaceholder 
                       src="https://images.unsplash.com/photo-1512389142860-9c449e58a543?q=80&w=800&auto=format&fit=crop"
-                      alt="Holiday Special"
+                      alt="Seasonal luxury holiday treats and bespoke bakes for festive Maryland events"
                       className="aspect-[3/4] rounded-full gold-glow mb-4" 
                     />
                     <p className="text-[10px] uppercase tracking-widest text-gold pl-4">Holidays</p>
@@ -501,6 +502,7 @@ export default function App() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="py-20 bg-ivory border-t border-gold/10">
